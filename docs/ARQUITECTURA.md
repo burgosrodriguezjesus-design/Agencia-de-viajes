@@ -31,7 +31,7 @@ Decisiones principales:
 
 ## Base de datos
 
-Esquema en `supabase/migrations/`: `0001_init.sql` (tablas, RLS, funciones) y `0002_privileges.sql` (permisos por columna y supresión de cuenta).
+Esquema en `supabase/migrations/`: `0001_init.sql` (tablas, RLS, funciones), `0002_column_guards.sql` (guardas de columnas sensibles) y `0003_account_erasure_and_hardening.sql` (supresión de cuenta y permisos adicionales, pendiente de aplicar).
 
 | Tabla | Para qué |
 | --- | --- |
@@ -65,7 +65,7 @@ Esquema en `supabase/migrations/`: `0001_init.sql` (tablas, RLS, funciones) y `0
 
 - **RLS en todas las tablas.** Las funciones `private.can_view_trip` y `private.can_edit_trip` centralizan el permiso; cada tabla hija del viaje las usa.
 - **Sin acceso anónimo a tablas.** Lo público pasa por funciones concretas: `get_shared_trip(token)` devuelve solo el itinerario (ni documentos, ni conversación, ni presupuesto).
-- **Columnas sensibles protegidas.** Un usuario no puede modificar `profiles.plan`, `stripe_customer_id` ni `trips.owner_id` (permisos por columna). El plan solo cambia desde el webhook de Stripe con la clave secreta.
+- **Columnas sensibles protegidas.** Un usuario no puede modificar `profiles.plan`, `stripe_customer_id` ni `trips.owner_id`: lo impiden triggers de guarda en la base de datos. El plan solo cambia desde el webhook de Stripe con la clave secreta.
 - **Límites en la base de datos.** El tope de un viaje del plan gratuito es un *trigger*, no solo una comprobación de interfaz. El uso de agentes no se puede borrar ni antedatar.
 - **Documentos privados.** Bucket no público, rutas `<trip_id>/<fichero>`, políticas ligadas al permiso sobre el viaje y enlaces firmados de 5 minutos.
 - **RGPD.** Exportación completa en JSON (`/api/account/export`) y supresión de cuenta (`delete_my_account`) con borrado en cascada.

@@ -13,7 +13,8 @@ La apuesta: **un equipo de especialistas que trabaja sobre un único plan y demu
 
 ### Fase 0 — Cerrar el MVP (antes de enseñarlo)
 
-- [ ] Aplicar `supabase/migrations/0002_privileges.sql` en Supabase (SQL Editor).
+- [x] Guardas de plan y propietario aplicadas (`0002_column_guards.sql`).
+- [ ] Aplicar `supabase/migrations/0003_account_erasure_and_hardening.sql` en Supabase (SQL Editor) para activar «Eliminar mi cuenta».
 - [ ] Configurar `ANTHROPIC_API_KEY` y **probar los agentes de verdad** con 10-15 viajes variados. Ajustar prompts y límites con lo que salga.
 - [ ] Medir el coste real por viaje generado (tabla `agent_runs`) antes de fijar precios y límites.
 - [ ] Elegir nombre y dominio; completar datos legales; revisión de los textos legales por un profesional.
@@ -91,7 +92,7 @@ Dos advertencias honestas:
 
 ## Lista de comprobación para abrir al público
 
-- [ ] Migración de permisos aplicada y asesores de seguridad de Supabase revisados (los avisos sobre `get_shared_trip` y `accept_trip_invite` son intencionados: son las dos funciones públicas del producto).
+- [ ] Migración `0003` aplicada y asesores de seguridad de Supabase revisados (los avisos sobre `get_shared_trip` y `accept_trip_invite` son intencionados: son las dos funciones públicas del producto).
 - [ ] Protección contra contraseñas filtradas activada en Supabase (Authentication → Passwords).
 - [ ] Agentes probados con viajes reales.
 - [ ] Datos de la sociedad y textos legales revisados.

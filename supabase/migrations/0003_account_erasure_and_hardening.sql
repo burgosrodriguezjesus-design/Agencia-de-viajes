@@ -1,10 +1,16 @@
 -- =====================================================================
--- Permisos por columna y derecho de supresión.
--- IMPRESCINDIBLE antes de abrir a usuarios reales: sin esto, un usuario
--- autenticado podría modificar su propio plan.
+-- PENDIENTE DE APLICAR. Supabase pide confirmación manual para este
+-- fichero porque contiene sentencias REVOKE y DELETE.
 --
--- Cómo aplicarlo a mano: panel de Supabase → SQL Editor → pegar este
--- fichero completo → Run. Es idempotente (se puede ejecutar más de una vez).
+-- Qué aporta:
+--   1. `delete_my_account()`: necesaria para el botón «Eliminar mi cuenta»
+--      (derecho de supresión, RGPD art. 17). Alternativa sin esta función:
+--      configurar SUPABASE_SECRET_KEY en el servidor.
+--   2. Permisos por columna (REVOKE/GRANT): defensa en profundidad. Lo
+--      esencial ya lo imponen RLS y los triggers de 0002_column_guards.sql.
+--
+-- Cómo aplicarlo: panel de Supabase → SQL Editor → pegar este fichero
+-- completo → Run. Es idempotente.
 -- =====================================================================
 
 -- Sin acceso anónimo directo a tablas: lo público pasa por funciones RPC.

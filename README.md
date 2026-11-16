@@ -18,7 +18,7 @@ La regla del producto es **no simular nada**: cada integración aparece en la pr
 | Itinerario básico con lugares reales | ✅ Funciona | Sin IA: Wikipedia + agrupación geográfica + ruta más corta |
 | Comparador y presupuesto | ✅ Funciona | Tres alternativas, diferencias, coste total, ahorro solo con comparación real |
 | Documentos del viaje | ✅ Funciona | Almacén privado, enlaces temporales |
-| RGPD: exportar y eliminar datos | ✅ Exportar · ⏳ Eliminar | Eliminar la cuenta requiere aplicar `0002_privileges.sql` |
+| RGPD: exportar y eliminar datos | ✅ Exportar · ⏳ Eliminar | Eliminar la cuenta requiere aplicar `0003_…sql` o configurar `SUPABASE_SECRET_KEY` |
 | Enlaces de reserva y afiliación | ✅ Funciona | Enlaces ya rellenados; identificador de afiliado opcional y siempre señalado |
 | Los 6 agentes de IA | 🔑 Requiere `ANTHROPIC_API_KEY` | Implementados y con tests; **no ejecutados contra la API real** en el desarrollo por falta de clave |
 | Precios de vuelos verificados | 🔑 Requiere `DUFFEL_ACCESS_TOKEN` | Adaptador escrito contra la documentación; pendiente de validar con credenciales |
@@ -41,8 +41,9 @@ Variables imprescindibles: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUB
 
 El esquema está en `supabase/migrations/`:
 
-1. `0001_init.sql` — tablas, políticas RLS, funciones y almacén de documentos. **Ya aplicado** en el proyecto de Supabase asociado.
-2. `0002_privileges.sql` — permisos por columna y función de supresión de cuenta. **Pendiente de aplicar**: es imprescindible antes de abrir a usuarios reales, porque impide que un usuario modifique su propio plan. Para aplicarlo, pega el fichero en *SQL Editor* del panel de Supabase y pulsa *Run*.
+1. `0001_init.sql` — tablas, políticas RLS, funciones y almacén de documentos. **Aplicado.**
+2. `0002_column_guards.sql` — guardas que impiden a un usuario cambiar su plan, el propietario de un viaje o su registro de uso de IA. **Aplicado y comprobado** contra la base de datos real.
+3. `0003_account_erasure_and_hardening.sql` — función de supresión de cuenta y permisos por columna adicionales. **Pendiente**: Supabase exige confirmarlo a mano. Para aplicarlo, pega el fichero en *SQL Editor* del panel de Supabase y pulsa *Run*. Hasta entonces, «Eliminar mi cuenta» solo funciona si el servidor tiene `SUPABASE_SECRET_KEY`.
 
 En el panel de Supabase conviene además:
 
