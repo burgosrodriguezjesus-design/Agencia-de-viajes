@@ -8,4 +8,8 @@ export const BRAND = {
   contactEmail: "[EMAIL DE CONTACTO PENDIENTE]",
 } as const;
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+// URL pública: la configurada o, en Vercel, el dominio de producción del proyecto.
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
+).replace(/\/$/, "");
