@@ -1,6 +1,8 @@
-// Nombre comercial provisional: cámbialo aquí y se actualiza en toda la web.
+// Nombre comercial y subtítulo: se cambian aquí y se actualizan en toda la web.
 export const BRAND = {
-  name: "Travesía",
+  name: "Agencia",
+  // Subtítulo de la marca; las letras "IA" se resaltan en el logotipo.
+  subtitle: "agencIA de viajes",
   tagline: "Tu próximo viaje, al mejor precio. Organizado por IA",
   description:
     "Agencia de viajes inteligente: un equipo de agentes de IA compara vuelos y hoteles, diseña tu itinerario y optimiza tu presupuesto en un único lugar.",

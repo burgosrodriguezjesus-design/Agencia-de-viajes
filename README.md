@@ -1,10 +1,10 @@
-# Travesía — agencia de viajes inteligente con agentes de IA
+# Agencia — agencIA de viajes
 
 > *Tu próximo viaje, al mejor precio. Organizado por IA.*
 
 Plataforma SaaS para planificar un viaje completo desde un único lugar: itinerario día a día, comparación de vuelos y alojamiento, presupuesto con detección de ahorro, documentos y un asistente que coordina a un equipo de agentes especializados.
 
-«Travesía» es un nombre provisional: se cambia en `src/lib/brand.ts`.
+El nombre («Agencia») y el subtítulo («agencIA de viajes») se cambian en `src/lib/brand.ts`.
 
 ## Qué funciona hoy y qué está pendiente
 

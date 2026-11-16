@@ -13,10 +13,11 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${BRAND.name} — ${BRAND.tagline}`, template: `%s · ${BRAND.name}` },
+  title: { default: `${BRAND.name} — ${BRAND.subtitle}`, template: `%s · ${BRAND.name}` },
   description: BRAND.description,
   openGraph: {
-    title: `${BRAND.name} — ${BRAND.tagline}`,
+    title: `${BRAND.name} — ${BRAND.subtitle}`,
+    siteName: BRAND.name,
     description: BRAND.description,
     locale: "es_ES",
     type: "website",

@@ -8,7 +8,7 @@ export function MarketingHeader({ overlay = false }: { overlay?: boolean }) {
     <header
       className={cn(
         "z-30 w-full",
-        overlay ? "absolute inset-x-0 top-0 text-white [&_a]:text-white" : "border-b border-line bg-bg text-ink",
+        overlay ? "absolute inset-x-0 top-0 text-white [--logo-ia:#8fe3ee] [&_a]:text-white" : "border-b border-line bg-bg text-ink",
       )}
     >
       <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">

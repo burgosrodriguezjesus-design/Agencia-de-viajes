@@ -207,10 +207,20 @@ export function Logo({ href = "/", className, compact = false }: { href?: string
     <Link href={href} className={cn("inline-flex items-center gap-2 text-ink", className)} aria-label={`${BRAND.name}, inicio`}>
       <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <circle cx="16" cy="16" r="15" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M21.5 10.5 18 18l-7.5 3.5L14 14l7.5-3.5Z" fill="var(--accent)" />
+        <path d="M21.5 10.5 18 18l-7.5 3.5L14 14l7.5-3.5Z" fill="var(--logo-ia, var(--accent))" />
         <circle cx="16" cy="16" r="1.4" fill="var(--bg)" />
       </svg>
-      <span className={cn("font-display text-[1.35rem] leading-none font-medium tracking-tight", compact && "hidden sm:inline")}>{BRAND.name}</span>
+      <span className={cn("flex flex-col", compact && "hidden sm:flex")}>
+        <span className="font-display text-[1.35rem] leading-none font-medium tracking-tight">{BRAND.name}</span>
+        <span className="mt-0.5 text-[10.5px] leading-none tracking-wide opacity-75">
+          {BRAND.subtitle.split("IA").map((part, i, parts) => (
+            <span key={i}>
+              {part}
+              {i < parts.length - 1 ? <span className="font-bold text-[var(--logo-ia,var(--accent))]">IA</span> : null}
+            </span>
+          ))}
+        </span>
+      </span>
     </Link>
   );
 }
