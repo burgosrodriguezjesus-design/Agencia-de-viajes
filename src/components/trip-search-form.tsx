@@ -130,13 +130,14 @@ export function TripSearchForm({
   const [pace, setPace] = useState<Pace>((defaults.pace as Pace) || "equilibrado");
   const [open, setOpen] = useState(mode === "create");
   const [start, setStart] = useState(defaults.start_date ?? "");
-  const [today, setToday] = useState<string | undefined>(undefined);
   const endRef = useRef<HTMLInputElement>(null);
 
-  // "Hoy" se calcula en el navegador para no fijar la fecha al prerenderizar.
-  useEffect(() => {
-    setToday(new Date().toISOString().slice(0, 10));
-  }, []);
+  // "Hoy" se calcula en el navegador al usar el campo, para no fijar la
+  // fecha en el HTML prerenderizado.
+  const setMinToday = (input: HTMLInputElement, floor?: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+    input.min = floor && floor > today ? floor : today;
+  };
 
   const formProps = mode === "landing" ? { action: "/app/nuevo", method: "get" as const } : { action: formAction };
 
@@ -163,7 +164,7 @@ export function TripSearchForm({
             type="date"
             name="start_date"
             required
-            min={today}
+            onFocus={(e) => setMinToday(e.currentTarget)}
             value={start}
             onChange={(e) => {
               setStart(e.target.value);
@@ -180,7 +181,8 @@ export function TripSearchForm({
             type="date"
             name="end_date"
             required
-            min={start || today}
+            min={start || undefined}
+            onFocus={(e) => setMinToday(e.currentTarget, start)}
             defaultValue={defaults.end_date}
             className={bare}
           />

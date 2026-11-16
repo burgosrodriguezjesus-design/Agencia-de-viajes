@@ -6,6 +6,7 @@ import { clusterIntoDays } from "../domain/geo";
 import { PACE_CONFIG } from "../domain/schedule";
 import type { Trip } from "../domain/types";
 import { geocode } from "../providers/geocoding";
+import { ProviderError } from "../providers/http";
 import { findPois, getDestinationMedia, type Poi } from "../providers/places";
 import { isAiConfigured } from "../providers/status";
 import { appendItems, ensureDays, organizeDay, type NewItem } from "../trip-ops";
@@ -140,7 +141,11 @@ export async function generateTripPlan(ctx: AgentContext): Promise<PipelineResul
       ctx.emit({ type: "agent", agent: "itinerario", status: "done", detail: "Itinerario básico (sin IA)" });
     } catch (err) {
       ctx.emit({ type: "agent", agent: "itinerario", status: "error", detail: "Itinerario básico (sin IA)" });
-      warnings.push(`No se pudo generar el itinerario básico: ${err instanceof Error ? err.message : "error"}`);
+      warnings.push(
+        err instanceof ProviderError && err.status === 429
+          ? "La fuente de lugares (Wikipedia) está limitando las consultas en este momento. Espera un minuto y pulsa «Reintentar»."
+          : "No hemos podido consultar la fuente de lugares de interés. Pulsa «Reintentar» en unos segundos.",
+      );
     }
     await ctx.supabase.from("trips").update({ status: "ready" }).eq("id", trip.id);
     return { mode: "basic", warnings };

@@ -11,7 +11,13 @@ export type GuardResult =
   | { ok: false; status: number; error: string }
   | { ok: true; supabase: ServerSupabase; userId: string; trip: Trip; plan: Plan; runId: string | null };
 
-export async function guardAgentRun(tripId: string, kind: "chat" | "generation"): Promise<GuardResult> {
+export async function guardAgentRun(
+  tripId: string,
+  kind: "chat" | "generation",
+  opts: { metered?: boolean } = {},
+): Promise<GuardResult> {
+  // El modo básico (sin IA) no consume consultas del plan.
+  const metered = opts.metered ?? true;
   const supabase = await createClient();
   const user = await getSessionUser(supabase);
   if (!user) return { ok: false, status: 401, error: "Inicia sesión para continuar." };
@@ -21,6 +27,9 @@ export async function guardAgentRun(tripId: string, kind: "chat" | "generation")
   if (found.role === "viewer") return { ok: false, status: 403, error: "Solo tienes permiso de lectura en este viaje." };
 
   const plan = await getPlan(supabase, user.id);
+  if (!metered) {
+    return { ok: true, supabase, userId: user.id, trip: found.trip, plan, runId: null };
+  }
   const usage = await getAgentUsage(supabase, user.id, plan);
   if (usage.remaining <= 0) {
     return {

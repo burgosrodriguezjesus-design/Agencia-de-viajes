@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "./ui";
 
 export interface MapPoint {
@@ -33,6 +33,7 @@ export function TripMap({
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
+  const [ready, setReady] = useState(false);
 
   // Inicialización (solo en el navegador).
   useEffect(() => {
@@ -47,8 +48,8 @@ export function TripMap({
       }).addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
-      map.setView([fallbackCenter?.lat ?? 40.4, fallbackCenter?.lng ?? -3.7], fallbackCenter ? 12 : 4);
-      draw();
+      map.setView([40.4, -3.7], 4);
+      setReady(true);
     });
     return () => {
       cancelled = true;
@@ -56,17 +57,20 @@ export function TripMap({
       mapRef.current = null;
       layerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const draw = () => {
+  // Dibuja (y redibuja) las paradas cuando cambian.
+  const signature = points.map((p) => `${p.id}:${p.lat},${p.lng}:${p.badge ?? ""}`).join("|");
+  const centerLat = fallbackCenter?.lat ?? null;
+  const centerLng = fallbackCenter?.lng ?? null;
+  useEffect(() => {
     const L = leafletRef.current;
     const map = mapRef.current;
     const layer = layerRef.current;
-    if (!L || !map || !layer) return;
+    if (!ready || !L || !map || !layer) return;
     layer.clearLayers();
     if (points.length === 0) {
-      if (fallbackCenter) map.setView([fallbackCenter.lat, fallbackCenter.lng], 12);
+      if (centerLat !== null && centerLng !== null) map.setView([centerLat, centerLng], 12);
       return;
     }
     const latLngs = points.map((p) => L.latLng(p.lat, p.lng));
@@ -86,14 +90,9 @@ export function TripMap({
         .addTo(layer);
     });
     map.fitBounds(L.latLngBounds(latLngs), { padding: [36, 36], maxZoom: 15 });
-  };
-
-  // Redibuja cuando cambian las paradas.
-  const signature = points.map((p) => `${p.id}:${p.lat},${p.lng}:${p.badge ?? ""}`).join("|");
-  useEffect(() => {
-    draw();
+    // `signature` resume el contenido de `points`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, showRoute]);
+  }, [ready, signature, showRoute, centerLat, centerLng]);
 
   return (
     <div

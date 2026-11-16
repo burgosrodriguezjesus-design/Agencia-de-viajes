@@ -2,13 +2,14 @@ import { generateTripPlan } from "@/lib/agents/pipeline";
 import { buildContext, finishRun, guardAgentRun } from "@/lib/agents/run-guard";
 import { describeAgentError } from "@/lib/agents/runtime";
 import { sseResponse } from "@/lib/agents/sse";
+import { isAiConfigured } from "@/lib/providers/status";
 
 export const maxDuration = 300;
 
 /** Genera el plan inicial del viaje. Solo si el viaje aún no tiene itinerario. */
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const guard = await guardAgentRun(id, "generation");
+  const guard = await guardAgentRun(id, "generation", { metered: isAiConfigured() });
   if (!guard.ok) return Response.json({ error: guard.error }, { status: guard.status });
 
   const { count } = await guard.supabase

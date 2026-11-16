@@ -1,6 +1,6 @@
 import "server-only";
 import { haversineKm, type LatLng } from "../domain/geo";
-import { fetchJson, OPEN_DATA_UA, ProviderError } from "./http";
+import { fetchJson, OPEN_DATA_UA, ProviderError, wikimediaHeaders } from "./http";
 
 // Lugares de interés reales a partir de Wikipedia (búsqueda geográfica) y
 // restaurantes a partir de OpenStreetMap (Overpass). Sin clave. Son datos
@@ -70,7 +70,7 @@ async function geosearch(lang: "es" | "en", center: LatLng, radiusM: number, lim
   const data = await fetchJson<WikiGeoResponse>(
     `wikipedia-${lang}`,
     `https://${lang}.wikipedia.org/w/api.php?${params}`,
-    { headers: { "User-Agent": OPEN_DATA_UA, "Api-User-Agent": OPEN_DATA_UA }, next: { revalidate: 86_400 } },
+    { headers: wikimediaHeaders(), next: { revalidate: 86_400 }, retries: 1, maxRetryAfterMs: 20_000 },
   );
   const pages = Object.values(data.query?.pages ?? {});
   return pages
@@ -109,6 +109,14 @@ export async function findPois(center: LatLng, opts: { radiusKm?: number; limit?
       lastError = err;
     }
   }
+  if (pois.length === 0) {
+    // Segunda fuente: atracciones de OpenStreetMap (sin popularidad ni fotos).
+    try {
+      pois = await findPoisOsm(center, radiusM);
+    } catch {
+      // se informa del error de la fuente principal
+    }
+  }
   if (pois.length === 0 && lastError) {
     throw lastError instanceof ProviderError ? lastError : new ProviderError("wikipedia", "sin resultados");
   }
@@ -117,6 +125,45 @@ export async function findPois(center: LatLng, opts: { radiusKm?: number; limit?
     .filter((p) => p.distanceKm > 0.02) // descarta la propia página de la ciudad
     .sort((a, b) => b.popularity - a.popularity)
     .slice(0, limit);
+}
+
+/**
+ * Atracciones turísticas de OpenStreetMap como fuente alternativa. Solo
+ * elementos con nombre y con ficha en Wikipedia/Wikidata (señal de relevancia).
+ */
+async function findPoisOsm(center: LatLng, radiusM: number): Promise<Poi[]> {
+  const around = `(around:${Math.min(10_000, radiusM)},${center.lat},${center.lng})`;
+  const query = `[out:json][timeout:20];(nwr${around}["tourism"~"^(attraction|museum|viewpoint|gallery|zoo|theme_park|aquarium)$"]["name"]["wikidata"];nwr${around}["historic"~"^(castle|monument|ruins|archaeological_site|palace|temple)$"]["name"]["wikidata"];);out center 120;`;
+  const data = await fetchJson<{
+    elements?: { type: string; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }[];
+  }>("overpass", "https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": OPEN_DATA_UA },
+    body: `data=${encodeURIComponent(query)}`,
+    timeoutMs: 25_000,
+    retries: 0,
+  });
+  return (data.elements ?? [])
+    .map((e): Poi | null => {
+      const lat = e.lat ?? e.center?.lat;
+      const lng = e.lon ?? e.center?.lon;
+      const tags = e.tags ?? {};
+      if (typeof lat !== "number" || typeof lng !== "number" || !tags.name) return null;
+      const kind = tags.tourism ?? tags.historic ?? null;
+      return {
+        ref: `osm:${e.type}/${e.id}`,
+        title: tags["name:es"] ?? tags.name,
+        description: kind ? kind.replace(/_/g, " ") : null,
+        lat,
+        lng,
+        imageUrl: null,
+        sourceUrl: `https://www.openstreetmap.org/${e.type}/${e.id}`,
+        // Sin datos de visitas: se prioriza lo que tiene artículo en Wikipedia.
+        popularity: tags.wikipedia ? 2 : 1,
+        distanceKm: haversineKm(center, { lat, lng }),
+      };
+    })
+    .filter((p): p is Poi => p !== null);
 }
 
 /** Imagen y resumen de un destino (página de Wikipedia de la ciudad). */
@@ -140,8 +187,9 @@ export async function getDestinationMedia(
       const data = await fetchJson<{
         query?: { pages?: Record<string, { thumbnail?: { source: string }; extract?: string; fullurl?: string }> };
       }>(`wikipedia-${lang}`, `https://${lang}.wikipedia.org/w/api.php?${params}`, {
-        headers: { "User-Agent": OPEN_DATA_UA, "Api-User-Agent": OPEN_DATA_UA },
+        headers: wikimediaHeaders(),
         next: { revalidate: 604_800 },
+        retries: 0,
       });
       const page = Object.values(data.query?.pages ?? {})[0];
       if (page?.thumbnail?.source) {

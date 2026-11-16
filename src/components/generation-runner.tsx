@@ -46,7 +46,9 @@ export function GenerationRunner({
     if (started.current) return;
     started.current = true;
     setRunning(true);
+    setFinished(false);
     setWarnings([]);
+    setStages((prev) => prev.map((s) => ({ ...s, state: "pending", detail: undefined })));
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     try {
       await streamEvents(`/api/trips/${tripId}/generate`, undefined, (event) => {
@@ -73,6 +75,7 @@ export function GenerationRunner({
     } catch (err) {
       setWarnings((prev) => [...prev, err instanceof Error ? err.message : "No se pudo generar el viaje."]);
     } finally {
+      started.current = false;
       setRunning(false);
       setFinished(true);
       setActivity(null);
@@ -92,7 +95,7 @@ export function GenerationRunner({
     <Card className="overflow-hidden">
       <div className="border-b border-line px-6 py-5">
         <h2 className="font-display text-2xl font-medium">
-          {running ? "Tu equipo está preparando el viaje" : finished ? "Viaje generado con avisos" : "Genera el plan de tu viaje"}
+          {running ? "Tu equipo está preparando el viaje" : finished ? "No hemos podido completar el plan" : "Genera el plan de tu viaje"}
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-muted">
           {running
@@ -141,10 +144,10 @@ export function GenerationRunner({
           ))}
         </div>
       ) : null}
-      {!running && !finished ? (
+      {!running ? (
         <div className="border-t border-line p-4">
           <Button variant="accent" onClick={() => void run()}>
-            Generar mi viaje
+            {finished ? "Reintentar" : "Generar mi viaje"}
           </Button>
         </div>
       ) : null}

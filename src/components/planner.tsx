@@ -88,7 +88,9 @@ export function Planner({ trip, dates, days, items, weather, canEdit }: PlannerP
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const [columns, setColumns] = useState<Columns>(() => buildColumns(dates, items));
   const columnsRef = useRef(columns);
-  columnsRef.current = columns;
+  useEffect(() => {
+    columnsRef.current = columns;
+  }, [columns]);
   const snapshot = useRef<Columns | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mapDay, setMapDay] = useState<string>(() => dates.find((d) => items.some((i) => i.day_date === d)) ?? dates[0] ?? SAVED);
@@ -100,10 +102,11 @@ export function Planner({ trip, dates, days, items, weather, canEdit }: PlannerP
   // Los datos del servidor mandan (p. ej. tras un cambio del asistente),
   // salvo mientras se arrastra o se está guardando.
   const serverSignature = items.map((i) => `${i.id}:${i.day_date ?? ""}:${i.position}`).join("|") + dates.join(",");
-  useEffect(() => {
-    if (!activeId && !pending) setColumns(buildColumns(dates, items));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverSignature]);
+  const [syncedSignature, setSyncedSignature] = useState(serverSignature);
+  if (serverSignature !== syncedSignature && !activeId && !pending) {
+    setSyncedSignature(serverSignature);
+    setColumns(buildColumns(dates, items));
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),

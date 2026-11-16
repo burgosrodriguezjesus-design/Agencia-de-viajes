@@ -2,6 +2,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 /**
  * Cliente de Supabase ligado a la sesión del usuario (cookies). Todas las
@@ -10,6 +11,9 @@ import { cookies } from "next/headers";
  */
 export async function createClient() {
   const cookieStore = await cookies();
+  // La sesión depende del instante de la petición (caducidad del token):
+  // se renderiza siempre en el momento, nunca en un prerender.
+  await connection();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
