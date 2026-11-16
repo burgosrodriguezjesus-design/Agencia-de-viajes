@@ -5,6 +5,7 @@ import { DeleteAccountForm, ProfileForm } from "@/components/account-forms";
 import { PricingPlans } from "@/components/pricing-plans";
 import { Badge, buttonClass, Card, Notice } from "@/components/ui";
 import { PLANS } from "@/lib/billing/plans";
+import { refreshSubscriptions } from "@/lib/billing/stripe";
 import { getAgentUsage, getProfile } from "@/lib/data";
 import { getIntegrationStatus, isStripeConfigured } from "@/lib/providers/status";
 import { loadSession } from "@/lib/trip-context";
@@ -14,13 +15,17 @@ export const metadata: Metadata = { title: "Cuenta" };
 const STATE_LABEL = { active: "Activa", pending: "Pendiente", optional: "Opcional" } as const;
 const STATE_TONE = { active: "save", pending: "warn", optional: "neutral" } as const;
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ pago?: string; pagos?: string }> }) {
-  const { supabase, user, plan } = await loadSession();
-  const [{ pago, pagos }, profile, usage] = await Promise.all([
-    searchParams,
-    getProfile(supabase, user.id),
-    getAgentUsage(supabase, user.id, plan),
-  ]);
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ pago?: string; pagos?: string; session_id?: string }> }) {
+  const { supabase, user } = await loadSession();
+  const { pago, pagos, session_id } = await searchParams;
+  // Pone al día el plan con Stripe (al volver del pago o si ya es cliente).
+  const before = await getProfile(supabase, user.id);
+  if (session_id || before?.stripe_customer_id) {
+    await refreshSubscriptions(user.id, before?.stripe_customer_id ?? null, session_id);
+  }
+  const profile = session_id || before?.stripe_customer_id ? await getProfile(supabase, user.id) : before;
+  const plan = profile?.plan ?? "free";
+  const usage = await getAgentUsage(supabase, user.id, plan);
   const { data: subscription } = await supabase
     .from("subscriptions")
     .select("status, billing_interval, current_period_end, cancel_at_period_end")

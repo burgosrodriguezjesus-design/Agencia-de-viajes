@@ -20,8 +20,14 @@ export function isAiConfigured(): boolean {
   return has("ANTHROPIC_API_KEY");
 }
 
+/** Clave secreta de Supabase (con cualquiera de sus dos nombres). */
+export function hasSupabaseSecret(): boolean {
+  return has("SUPABASE_SECRET_KEY") || has("SUPABASE_SERVICE_ROLE_KEY");
+}
+
+/** Pagos listos: clave de Stripe + clave secreta de Supabase para activar el plan. */
 export function isStripeConfigured(): boolean {
-  return has("STRIPE_SECRET_KEY") && has("STRIPE_PRICE_PREMIUM_MONTHLY") && has("STRIPE_PRICE_PREMIUM_YEARLY");
+  return has("STRIPE_SECRET_KEY") && hasSupabaseSecret();
 }
 
 export function getIntegrationStatus(): IntegrationStatus[] {
@@ -83,17 +89,13 @@ export function getIntegrationStatus(): IntegrationStatus[] {
       id: "stripe",
       name: "Stripe",
       purpose: "Suscripciones Premium mensuales y anuales",
-      state: isStripeConfigured() && has("STRIPE_WEBHOOK_SECRET") && has("SUPABASE_SECRET_KEY") ? "active" : "pending",
+      state: isStripeConfigured() ? "active" : "pending",
       detail: isStripeConfigured()
-        ? "Claves configuradas. Comprueba también el webhook y SUPABASE_SECRET_KEY."
-        : "Pendiente: el botón de Premium avisa de que los pagos aún no están activos.",
-      envVars: [
-        "STRIPE_SECRET_KEY",
-        "STRIPE_WEBHOOK_SECRET",
-        "STRIPE_PRICE_PREMIUM_MONTHLY",
-        "STRIPE_PRICE_PREMIUM_YEARLY",
-        "SUPABASE_SECRET_KEY",
-      ],
+        ? has("STRIPE_WEBHOOK_SECRET")
+          ? "Pagos activos, con webhook."
+          : "Pagos activos. Recomendado: configurar el webhook para reflejar al instante cancelaciones y renovaciones."
+        : "Pendiente: faltan STRIPE_SECRET_KEY y la clave secreta de Supabase. El botón de Premium avisa de que los pagos aún no están activos.",
+      envVars: ["STRIPE_SECRET_KEY", "SUPABASE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET (recomendado)"],
     },
     {
       id: "affiliates",
