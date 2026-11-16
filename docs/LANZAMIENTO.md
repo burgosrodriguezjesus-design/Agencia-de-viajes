@@ -91,7 +91,8 @@ Dos advertencias honestas:
 
 ## Lista de comprobación para abrir al público
 
-- [ ] Migración de permisos aplicada y asesores de seguridad de Supabase sin avisos.
+- [ ] Migración de permisos aplicada y asesores de seguridad de Supabase revisados (los avisos sobre `get_shared_trip` y `accept_trip_invite` son intencionados: son las dos funciones públicas del producto).
+- [ ] Protección contra contraseñas filtradas activada en Supabase (Authentication → Passwords).
 - [ ] Agentes probados con viajes reales.
 - [ ] Datos de la sociedad y textos legales revisados.
 - [ ] Dominio, correo transaccional y URL configurados en Supabase.

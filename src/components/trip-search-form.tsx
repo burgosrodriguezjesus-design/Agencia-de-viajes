@@ -254,7 +254,7 @@ export function TripSearchForm({
       {!open ? <input type="hidden" name="rooms" value={defaults.rooms ?? "1"} /> : null}
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="scroll-quiet -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label="Tipo de viaje">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tipo de viaje">
           {TRIP_TYPES.map((t) => (
             <button
               key={t.value}

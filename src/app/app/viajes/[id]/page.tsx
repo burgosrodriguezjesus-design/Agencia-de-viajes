@@ -66,7 +66,7 @@ export default async function TripOverviewPage({
         </Notice>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card className="p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -119,13 +119,13 @@ export default async function TripOverviewPage({
             Abrir planificador <ArrowRight className="size-4" aria-hidden />
           </Link>
         </div>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {dates.map((date, i) => {
             const items = scheduled.filter((it) => it.day_date === date);
             const day = bundle.days.find((d) => d.day_date === date);
             const weather = forecast.find((f) => f.date === date);
             return (
-              <li key={date}>
+              <li key={date} className="min-w-0">
                 <Link href={`${base}/itinerario`} className="block h-full rounded-2xl border border-line bg-surface p-4 transition hover:border-ink/30">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold tracking-wider text-accent uppercase">Día {i + 1}</p>

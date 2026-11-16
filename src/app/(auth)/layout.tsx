@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/client-bits";
+import { SafeImg } from "@/components/safe-img";
 import { Logo } from "@/components/ui";
 import { HERO_IMAGE } from "@/lib/content/destinations";
 
@@ -13,8 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">{children}</main>
       </div>
       <div className="relative hidden bg-[#1c2a30] lg:block">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={HERO_IMAGE.src} alt="" className="absolute inset-0 size-full object-cover" style={{ objectPosition: HERO_IMAGE.position }} />
+        <SafeImg src={HERO_IMAGE.src} className="absolute inset-0 size-full object-cover" style={{ objectPosition: HERO_IMAGE.position }} />
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-black/20" />
         <blockquote className="absolute inset-x-0 bottom-0 p-12 text-white">
           <p className="max-w-md font-display text-4xl leading-tight font-medium">

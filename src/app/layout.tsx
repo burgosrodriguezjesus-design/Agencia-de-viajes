@@ -20,7 +20,6 @@ export const metadata: Metadata = {
     description: BRAND.description,
     locale: "es_ES",
     type: "website",
-    images: ["/images/hero.jpg"],
   },
 };
 

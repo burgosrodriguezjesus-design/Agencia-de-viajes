@@ -28,9 +28,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
-          <div className="flex items-center gap-6">
-            <Logo href="/app" />
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-6">
+            <Logo href="/app" compact />
             <nav aria-label="Aplicación" className="flex items-center gap-1 text-sm font-medium">
               <Link href="/app" className="rounded-full px-3 py-1.5 text-muted transition hover:bg-surface-2 hover:text-ink">Mis viajes</Link>
               <Link href="/app/cuenta" className="rounded-full px-3 py-1.5 text-muted transition hover:bg-surface-2 hover:text-ink">Cuenta</Link>

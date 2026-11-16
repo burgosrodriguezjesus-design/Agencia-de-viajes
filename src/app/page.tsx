@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { Reveal } from "@/components/client-bits";
 import { PricingPlans } from "@/components/pricing-plans";
+import { SafeImg } from "@/components/safe-img";
 import { MarketingHeader, SiteFooter } from "@/components/site-chrome";
 import { TripSearchForm } from "@/components/trip-search-form";
 import { Badge, ButtonLink, Card, PriceBadge, SectionHeading } from "@/components/ui";
@@ -137,8 +138,7 @@ export default function HomePage() {
         {/* ── 1-3. Hero, eslogan y buscador ── */}
         <section className="relative isolate">
           <div className="absolute inset-0 -z-10 overflow-hidden bg-[#1c2a30]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <SafeImg
               src={HERO_IMAGE.src}
               alt={HERO_IMAGE.alt}
               fetchPriority="high"
@@ -331,10 +331,9 @@ export default function HomePage() {
                 <Reveal key={d.slug} delay={(i % 4) * 70}>
                   <Link
                     href={`/app/nuevo?destination=${encodeURIComponent(d.query)}`}
-                    className="group relative block aspect-[3/4] overflow-hidden rounded-2xl bg-surface-2"
+                    className="group relative block aspect-[3/4] overflow-hidden rounded-2xl bg-linear-to-br from-[#27424b] to-[#16242a]"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <SafeImg
                       src={d.src}
                       alt={d.alt}
                       loading="lazy"
