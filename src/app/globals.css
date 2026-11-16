@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+/* ── Tokens de diseño ─────────────────────────────────────────────────
+   Papel cálido + tinta, con un petróleo profundo como acento. El verde se
+   reserva para ahorro confirmado y el ámbar para estimaciones: el color
+   comunica la procedencia del precio en toda la aplicación. */
+:root {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --surface-2: #f2efe8;
+  --ink: #14181a;
+  --muted: #5d6468;
+  --line: #e3dfd6;
+  --accent: #0c5a67;
+  --accent-ink: #ffffff;
+  --accent-soft: #e0eef0;
+  --save: #1b7447;
+  --save-soft: #e2f2e8;
+  --warn: #8d5a00;
+  --warn-soft: #faefd6;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --shadow: 0 1px 2px rgb(20 24 26 / 0.04), 0 8px 24px -12px rgb(20 24 26 / 0.12);
+  --shadow-lg: 0 2px 4px rgb(20 24 26 / 0.04), 0 24px 48px -20px rgb(20 24 26 / 0.22);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0f10;
+    --surface: #14191b;
+    --surface-2: #1b2123;
+    --ink: #f1eee8;
+    --muted: #9aa3a6;
+    --line: #283033;
+    --accent: #62c6d6;
+    --accent-ink: #062a31;
+    --accent-soft: #11313a;
+    --save: #63d394;
+    --save-soft: #112e1e;
+    --warn: #efb84c;
+    --warn-soft: #382a0b;
+    --danger: #ff8a80;
+    --danger-soft: #3a1512;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 24px 48px -20px rgb(0 0 0 / 0.8);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0c0f10;
+  --surface: #14191b;
+  --surface-2: #1b2123;
+  --ink: #f1eee8;
+  --muted: #9aa3a6;
+  --line: #283033;
+  --accent: #62c6d6;
+  --accent-ink: #062a31;
+  --accent-soft: #11313a;
+  --save: #63d394;
+  --save-soft: #112e1e;
+  --warn: #efb84c;
+  --warn-soft: #382a0b;
+  --danger: #ff8a80;
+  --danger-soft: #3a1512;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 24px 48px -20px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-save: var(--save);
+  --color-save-soft: var(--save-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --shadow-card: var(--shadow);
+  --shadow-float: var(--shadow-lg);
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade: fade 0.5s ease both;
+  --animate-pulse-soft: pulse-soft 1.6s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Aparición suave al entrar en pantalla (ver components/reveal.tsx). */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Barras de desplazamiento discretas en zonas con scroll horizontal. */
+.scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Leaflet: adapta controles y popups a los temas. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--surface-2);
+  border-radius: inherit;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surface) 80%, transparent) !important;
+  color: var(--muted) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--accent) !important;
+}
+
+:root[data-theme="dark"] .leaflet-tile-pane {
+  filter: brightness(0.72) contrast(1.1) saturate(0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-tile-pane {
+    filter: brightness(0.72) contrast(1.1) saturate(0.7);
+  }
+}
+
+.map-pin {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 12px/1 var(--font-sans);
+  border: 2px solid var(--surface);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+/* Iconos que dependen del tema efectivo (explícito o del sistema). */
+.only-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .only-dark {
+  display: block;
+}
+
+:root[data-theme="dark"] .only-light {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .only-dark {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .only-light {
+    display: none;
+  }
+}
