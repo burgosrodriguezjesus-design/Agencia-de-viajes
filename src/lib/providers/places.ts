@@ -14,7 +14,7 @@ export interface Poi {
   lng: number;
   imageUrl: string | null;
   sourceUrl: string;
-  /** Visitas a la página en los últimos 30 días: indicador de popularidad. */
+  /** Indicador de relevancia (extensión del artículo de Wikipedia). */
   popularity: number;
   distanceKm: number;
 }
@@ -29,7 +29,7 @@ interface WikiGeoResponse {
         description?: string;
         coordinates?: { lat: number; lon: number }[];
         thumbnail?: { source: string };
-        pageviews?: Record<string, number | null>;
+        length?: number;
         fullurl?: string;
       }
     >;
@@ -44,6 +44,8 @@ const EXCLUDED = [
   /\b(empresa|compa[ñn][ií]a|company|corporation|sede|headquarters|f[aá]brica|factory)\b/i,
   /\b(batalla|asedio|incidente|atentado|accidente|terremoto|battle|siege|incident|earthquake|elecci[oó]n)\b/i,
   /\b(consulado|embajada|ministerio|c[aá]rcel|prisi[oó]n|cementerio municipal)\b/i,
+  /\b(rebeli[oó]n|revuelta|guerra|golpe de estado|masacre|incendio|disturbios|tratado|rebellion|war|treaty|riot|massacre)\b/i,
+  /\b(per[ií]odo|shogunato|dinast[ií]a|era|period|shogunate|dynasty)\b/i,
   /\b(circunscripci[oó]n|diócesis|archidi[oó]cesis|equipo de|club de f[uú]tbol)\b/i,
 ];
 
@@ -60,12 +62,13 @@ async function geosearch(lang: "es" | "en", center: LatLng, radiusM: number, lim
     ggscoord: `${center.lat}|${center.lng}`,
     ggsradius: String(Math.min(10_000, radiusM)),
     ggslimit: String(limit),
-    prop: "coordinates|pageimages|description|pageviews|info",
+    // Una sola petición: la extensión del artículo (`info.length`) sirve de
+    // indicador de relevancia sin necesidad de pedir las visitas aparte.
+    prop: "coordinates|pageimages|description|info",
     inprop: "url",
     pithumbsize: "640",
     pilimit: "max",
     colimit: "max",
-    pvipdays: "30",
   });
   const data = await fetchJson<WikiGeoResponse>(
     `wikipedia-${lang}`,
@@ -77,7 +80,6 @@ async function geosearch(lang: "es" | "en", center: LatLng, radiusM: number, lim
     .filter((p) => p.coordinates?.[0])
     .map((p) => {
       const coord = p.coordinates![0];
-      const views = Object.values(p.pageviews ?? {}).reduce<number>((s, v) => s + (v ?? 0), 0);
       return {
         ref: `wikipedia:${lang}:${p.pageid}`,
         title: p.title,
@@ -86,17 +88,20 @@ async function geosearch(lang: "es" | "en", center: LatLng, radiusM: number, lim
         lng: coord.lon,
         imageUrl: p.thumbnail?.source ?? null,
         sourceUrl: p.fullurl ?? `https://${lang}.wikipedia.org/?curid=${p.pageid}`,
-        popularity: views,
+        popularity: p.length ?? 0,
         distanceKm: haversineKm(center, { lat: coord.lat, lng: coord.lon }),
       };
     });
 }
 
 /**
- * Lugares de interés alrededor de un punto, ordenados por popularidad.
+ * Lugares de interés alrededor de un punto, ordenados por relevancia.
  * Prueba primero Wikipedia en español y, si falla o hay pocos, en inglés.
  */
-export async function findPois(center: LatLng, opts: { radiusKm?: number; limit?: number } = {}): Promise<Poi[]> {
+export async function findPois(
+  center: LatLng,
+  opts: { radiusKm?: number; limit?: number; exclude?: string } = {},
+): Promise<Poi[]> {
   const radiusM = (opts.radiusKm ?? 8) * 1000;
   const limit = opts.limit ?? 30;
   let pois: Poi[] = [];
@@ -122,7 +127,8 @@ export async function findPois(center: LatLng, opts: { radiusKm?: number; limit?
   }
   return pois
     .filter((p) => isTouristic(p.title, p.description))
-    .filter((p) => p.distanceKm > 0.02) // descarta la propia página de la ciudad
+    // Descarta la propia página de la ciudad.
+    .filter((p) => p.distanceKm > 0.02 && p.title.toLowerCase() !== opts.exclude?.toLowerCase())
     .sort((a, b) => b.popularity - a.popularity)
     .slice(0, limit);
 }

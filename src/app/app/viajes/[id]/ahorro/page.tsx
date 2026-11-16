@@ -6,7 +6,8 @@ import { BudgetBar } from "@/components/budget-bar";
 import { SuggestionActions } from "@/components/suggestion-actions";
 import { Badge, Card, EmptyState, Notice, PriceBadge } from "@/components/ui";
 import { canUseAgent } from "@/lib/billing/plans";
-import { BUDGET_CATEGORY_LABEL, buildBudget, formatMoney, isConfirmed, type BudgetCategory } from "@/lib/domain/money";
+import { ChooseOptionButton } from "@/components/choose-option-button";
+import { BUDGET_CATEGORY_LABEL, buildBudget, compareSavings, formatMoney, isConfirmed, type BudgetCategory, type Saving } from "@/lib/domain/money";
 import { OPTION_CATEGORY_LABEL, type OptionCategory, type Tier, type TripOption } from "@/lib/domain/types";
 import { loadBundle, loadTrip } from "@/lib/trip-context";
 
@@ -33,14 +34,43 @@ export default async function SavingsPage({ params }: { params: Promise<{ id: st
   const [{ trip, plan }, bundle] = await Promise.all([loadTrip(id), loadBundle(id)]);
   const summary = buildBudget(trip, bundle.items, bundle.options);
   const base = `/app/viajes/${id}`;
+  const missingMain = [
+    summary.byCategory.flight.confirmed + summary.byCategory.flight.estimated === 0 ? "vuelo" : null,
+    summary.byCategory.hotel.confirmed + summary.byCategory.hotel.estimated === 0 ? "alojamiento" : null,
+  ].filter((x): x is string => x !== null);
 
   const open = bundle.suggestions.filter((s) => s.status === "proposed");
   const applied = bundle.suggestions.filter((s) => s.status === "applied");
   const saving = (list: typeof open, basis: "verified" | "estimate") =>
     list.filter((s) => s.basis === basis).reduce((sum, s) => sum + ((s.current_amount ?? 0) - (s.proposed_amount ?? 0)), 0);
-  const verifiedSaving = saving(open, "verified");
-  const estimatedSaving = saving(open, "estimate");
-  const hasComparison = open.length > 0;
+
+  // Oportunidades detectadas sin IA: para vuelo y hotel, la alternativa
+  // guardada más barata que la que tienes elegida. Es una comparación real
+  // entre dos precios del propio viaje.
+  const detected: { current: TripOption; alternative: TripOption; saving: Saving }[] = [];
+  for (const category of ["flight", "hotel"] as const) {
+    const current = bundle.options.find((o) => o.category === category && o.selected);
+    if (!current) continue;
+    const best = bundle.options
+      .filter((o) => o.category === category && !o.selected)
+      .map((alternative) => ({
+        current,
+        alternative,
+        saving: compareSavings(
+          { amount: current.price_amount, currency: current.price_currency, status: current.price_status },
+          { amount: alternative.price_amount, currency: alternative.price_currency, status: alternative.price_status },
+        ),
+      }))
+      .filter((x): x is { current: TripOption; alternative: TripOption; saving: Saving } => x.saving !== null)
+      .sort((a, b) => b.saving.amount - a.saving.amount)[0];
+    if (best) detected.push(best);
+  }
+  const detectedSaving = (basis: "verified" | "estimate") =>
+    detected.filter((d) => d.saving.basis === basis).reduce((sum, d) => sum + d.saving.amount, 0);
+
+  const verifiedSaving = saving(open, "verified") + detectedSaving("verified");
+  const estimatedSaving = saving(open, "estimate") + detectedSaving("estimate");
+  const hasComparison = open.length > 0 || detected.length > 0;
 
   return (
     <div className="space-y-10">
@@ -102,11 +132,9 @@ export default async function SavingsPage({ params }: { params: Promise<{ id: st
               })}
             </tbody>
           </table>
-          {summary.byCategory.flight.confirmed + summary.byCategory.flight.estimated === 0 || summary.byCategory.hotel.confirmed + summary.byCategory.hotel.estimated === 0 ? (
+          {missingMain.length > 0 ? (
             <p className="mt-4 text-xs leading-relaxed text-muted">
-              Falta elegir {summary.byCategory.flight.confirmed + summary.byCategory.flight.estimated === 0 ? "vuelo" : ""}
-              {summary.byCategory.flight.confirmed + summary.byCategory.flight.estimated === 0 && summary.byCategory.hotel.confirmed + summary.byCategory.hotel.estimated === 0 ? " y " : ""}
-              {summary.byCategory.hotel.confirmed + summary.byCategory.hotel.estimated === 0 ? "alojamiento" : ""}: el total todavía no los incluye.
+              Falta elegir {missingMain.join(" y ")}: el total todavía no {missingMain.length > 1 ? "los" : "lo"} incluye.
             </p>
           ) : null}
         </Card>
@@ -157,7 +185,43 @@ export default async function SavingsPage({ params }: { params: Promise<{ id: st
       {/* Propuestas de ahorro */}
       <section>
         <h3 className="font-display text-xl font-medium">Propuestas de ahorro</h3>
-        {open.length === 0 ? (
+        {detected.length > 0 ? (
+          <ul className="mt-4 space-y-3">
+            {detected.map(({ current, alternative, saving: s }) => (
+              <li key={alternative.id} className="rounded-2xl border border-line bg-surface p-5">
+                <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge>{OPTION_CATEGORY_LABEL[alternative.category]}</Badge>
+                      <Badge tone={s.basis === "verified" ? "save" : "warn"}>
+                        {s.basis === "verified" ? "Comparación entre precios confirmados" : "Comparación con estimaciones"}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 font-medium">Cambiar a «{alternative.title}»</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">
+                      Ahora tienes elegida «{current.title}». Revisa qué cambia entre una y otra (horarios, escalas,
+                      ubicación, condiciones) antes de decidir.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted tabular-nums">
+                      <span className="line-through">{formatMoney(current.price_amount, current.price_currency)}</span>
+                      <ArrowRight className="mx-1.5 inline size-3.5" aria-hidden />
+                      <span className="font-medium text-ink">{formatMoney(alternative.price_amount, alternative.price_currency)}</span>
+                    </p>
+                    <p className={s.basis === "verified" ? "font-display text-2xl font-medium text-save tabular-nums" : "font-display text-2xl font-medium text-warn tabular-nums"}>
+                      −{formatMoney(s.amount, alternative.price_currency)} <span className="text-sm">({s.percent} %)</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-line pt-3">
+                  <ChooseOptionButton tripId={id} optionId={alternative.id}>Elegir esta opción</ChooseOptionButton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {open.length === 0 && detected.length > 0 ? null : open.length === 0 ? (
           <div className="mt-4">
             <EmptyState title="Sin propuestas pendientes">
               Cuando el optimizador encuentre una alternativa más barata, aparecerá aquí con su precio actual, el

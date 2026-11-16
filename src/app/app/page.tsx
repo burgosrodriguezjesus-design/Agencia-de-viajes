@@ -8,6 +8,7 @@ import { formatDateRange, tripDates } from "@/lib/domain/dates";
 import { formatMoney } from "@/lib/domain/money";
 import { TRIP_TYPES } from "@/lib/domain/types";
 import { loadSession } from "@/lib/trip-context";
+import { SafeImg } from "@/components/safe-img";
 
 export const metadata: Metadata = { title: "Mis viajes" };
 
@@ -58,8 +59,7 @@ export default async function TripsPage({ searchParams }: { searchParams: Promis
               <Link href={`/app/viajes/${trip.id}`} className="group block overflow-hidden rounded-2xl border border-line bg-surface shadow-card transition hover:-translate-y-0.5 hover:shadow-float">
                 <div className="relative aspect-[16/9] overflow-hidden bg-surface-2">
                   {trip.cover_image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={trip.cover_image_url} alt="" loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-105" />
+                                        <SafeImg src={trip.cover_image_url} loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-105" />
                   ) : (
                     <div className="grid size-full place-items-center bg-linear-to-br from-accent-soft to-surface-2 font-display text-5xl text-accent/40">
                       {trip.destination.slice(0, 1)}

@@ -87,7 +87,10 @@ export async function buildBasicPlan(ctx: AgentContext, trip: Trip): Promise<{ c
   const dates = tripDates(trip.start_date, trip.end_date);
   const pace = PACE_CONFIG[trip.pace];
   const wanted = Math.min(40, dates.length * pace.perDay);
-  let pois: Poi[] = await findPois({ lat: trip.dest_lat, lng: trip.dest_lng }, { radiusKm: 8, limit: wanted });
+  let pois: Poi[] = await findPois(
+    { lat: trip.dest_lat, lng: trip.dest_lng },
+    { radiusKm: 8, limit: wanted, exclude: trip.destination },
+  );
   if (pois.length === 0) return { created: 0 };
   pois = pois.slice(0, wanted);
 

@@ -9,6 +9,7 @@ import type { ItineraryItem } from "@/lib/domain/types";
 import { toLinkViews } from "@/lib/link-views";
 import { activityLinks } from "@/lib/providers/links";
 import { loadBundle, loadTrip } from "@/lib/trip-context";
+import { SafeImg } from "@/components/safe-img";
 
 export const metadata: Metadata = { title: "Experiencias" };
 
@@ -16,8 +17,7 @@ function ExperienceCard({ item, tripId }: { item: ItineraryItem; tripId: string 
   return (
     <li className="flex gap-4 rounded-2xl border border-line bg-surface p-3.5">
       {item.image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image_url} alt="" loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" />
+                <SafeImg src={item.image_url} loading="lazy" className="size-24 shrink-0 rounded-xl object-cover" />
       ) : (
         <div className="grid size-24 shrink-0 place-items-center rounded-xl bg-surface-2 font-display text-3xl text-muted/50">{item.title.slice(0, 1)}</div>
       )}

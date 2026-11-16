@@ -38,6 +38,7 @@ import { formatMoney } from "@/lib/domain/money";
 import { dayTravelTotals, PACE_CONFIG, scheduleDay } from "@/lib/domain/schedule";
 import type { ItineraryItem, Pace, TripDay } from "@/lib/domain/types";
 import { Modal } from "./modal";
+import { SafeImg } from "./safe-img";
 import { TripMap, type MapPoint } from "./trip-map";
 import { Badge, Button, cn, Field, inputClass, Notice, PriceBadge } from "./ui";
 
@@ -464,8 +465,7 @@ function ItemCard({
           <span className="block text-[11px] text-muted">{formatDuration(item.duration_min)}</span>
         </span>
         {item.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt="" loading="lazy" className="hidden size-12 shrink-0 rounded-lg object-cover sm:block" />
+          <SafeImg src={item.image_url} loading="lazy" className="hidden size-12 shrink-0 rounded-lg bg-surface-2 object-cover sm:block" />
         ) : null}
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
@@ -624,8 +624,7 @@ function EditItemModal({
     <Modal open onClose={onClose} title={item.title}>
       <div className="space-y-4">
         {item.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt="" className="h-40 w-full rounded-2xl object-cover" />
+          <SafeImg src={item.image_url} className="h-40 w-full rounded-2xl bg-surface-2 object-cover" />
         ) : null}
         {item.description ? <p className="text-[15px] leading-relaxed text-muted">{item.description}</p> : null}
         <div className="flex flex-wrap items-center gap-2 text-sm">

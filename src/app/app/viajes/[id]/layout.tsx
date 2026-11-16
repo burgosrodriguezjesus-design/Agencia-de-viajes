@@ -6,6 +6,7 @@ import { formatDateRange, tripDates } from "@/lib/domain/dates";
 import { TRIP_TYPES } from "@/lib/domain/types";
 import { isAiConfigured } from "@/lib/providers/status";
 import { loadTrip } from "@/lib/trip-context";
+import { SafeImg } from "@/components/safe-img";
 
 export default async function TripLayout({
   children,
@@ -29,8 +30,7 @@ export default async function TripLayout({
       <div className="relative isolate overflow-hidden border-b border-line bg-surface">
         {trip.cover_image_url ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={trip.cover_image_url} alt="" className="absolute inset-0 -z-10 size-full object-cover opacity-25" />
+                        <SafeImg src={trip.cover_image_url} className="absolute inset-0 -z-10 size-full object-cover opacity-25" />
             <div className="absolute inset-0 -z-10 bg-linear-to-t from-surface via-surface/85 to-surface/40" />
           </>
         ) : null}

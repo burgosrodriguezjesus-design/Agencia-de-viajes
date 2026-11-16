@@ -11,6 +11,7 @@ import { hasCoords } from "@/lib/domain/geo";
 import { formatMoney } from "@/lib/domain/money";
 import type { ItineraryItem, Trip, TripDay } from "@/lib/domain/types";
 import { createClient } from "@/lib/supabase/server";
+import { SafeImg } from "@/components/safe-img";
 
 export const metadata: Metadata = { title: "Viaje compartido", robots: { index: false, follow: false } };
 
@@ -40,8 +41,7 @@ async function SharedTripView({ params }: { params: Promise<{ token: string }> }
       <section className="relative isolate overflow-hidden border-b border-line bg-surface">
         {trip.cover_image_url ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={trip.cover_image_url} alt="" className="absolute inset-0 -z-10 size-full object-cover opacity-30" />
+                        <SafeImg src={trip.cover_image_url} className="absolute inset-0 -z-10 size-full object-cover opacity-30" />
             <div className="absolute inset-0 -z-10 bg-linear-to-t from-surface via-surface/80 to-surface/30" />
           </>
         ) : null}

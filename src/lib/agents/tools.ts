@@ -173,7 +173,7 @@ export const buscarLugares = defineTool({
   name: "buscar_lugares",
   label: "Buscando lugares de interés",
   description:
-    "Busca lugares de interés reales (monumentos, museos, parques, barrios, templos...) cerca de un punto, ordenados por popularidad. Fuente: Wikipedia. Por defecto busca alrededor del destino del viaje. Cada resultado trae una `ref` que debes usar al añadirlo al itinerario. No incluye precios ni horarios.",
+    "Busca lugares de interés reales (monumentos, museos, parques, barrios, templos...) cerca de un punto, ordenados por relevancia. Fuente: Wikipedia. Por defecto busca alrededor del destino del viaje. Cada resultado trae una `ref` que debes usar al añadirlo al itinerario. No incluye precios ni horarios.",
   schema: z.object({
     lat: z.number().min(-90).max(90).optional().describe("Latitud del centro; por defecto el destino"),
     lng: z.number().min(-180).max(180).optional(),
@@ -189,7 +189,7 @@ export const buscarLugares = defineTool({
           ? { lat: trip.dest_lat, lng: trip.dest_lng }
           : null;
     if (!center) throw new Error("El viaje no tiene coordenadas. Usa primero `geocodificar`.");
-    const pois = await findPois(center, { radiusKm: input.radio_km, limit: input.limite ?? 30 });
+    const pois = await findPois(center, { radiusKm: input.radio_km, limit: input.limite ?? 30, exclude: trip.destination });
     const cache = places(ctx);
     pois.forEach((p) =>
       cache.set(p.ref, { title: p.title, lat: p.lat, lng: p.lng, sourceUrl: p.sourceUrl, imageUrl: p.imageUrl, address: null }),
@@ -201,7 +201,7 @@ export const buscarLugares = defineTool({
       lat: p.lat,
       lng: p.lng,
       km_del_centro: Math.round(p.distanceKm * 10) / 10,
-      popularidad: p.popularity,
+      relevancia: p.popularity,
     }));
   },
 });
