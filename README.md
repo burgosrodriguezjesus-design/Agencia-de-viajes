@@ -27,6 +27,18 @@ La regla del producto es **no simular nada**: cada integración aparece en la pr
 | Seguimiento de precios | ⏳ No implementado | Necesita proveedores de precios activos y una tarea programada |
 | Viajes multidestino | ⏳ Parcial | Un destino principal; se pueden añadir días y lugares de otras ciudades al itinerario |
 
+## Despliegue actual
+
+- **Web:** https://agencia-de-viajes-mocha.vercel.app (proyecto `agencia-de-viajes` en Vercel, enlazado a este repositorio: cada *push* a la rama de producción se despliega solo).
+- **Base de datos:** proyecto `agencia-de-viajes` en Supabase (región de París).
+- Las funciones del servidor se ejecutan en París (`cdg1`), junto a la base de datos.
+- La web de producción es pública; las versiones de prueba (*preview*) requieren iniciar sesión en Vercel.
+
+Pendiente en los paneles (no se puede hacer por API):
+
+1. **Supabase → Authentication → URL Configuration:** poner la URL de la web en *Site URL* y añadir `https://agencia-de-viajes-mocha.vercel.app/auth/callback` a *Redirect URLs*. Sin esto, el enlace del correo de confirmación de las cuentas nuevas apunta a `localhost`.
+2. **Vercel → Settings → Environment Variables:** añadir `ANTHROPIC_API_KEY` para activar los agentes de IA, y volver a desplegar.
+
 ## Puesta en marcha
 
 ```bash
