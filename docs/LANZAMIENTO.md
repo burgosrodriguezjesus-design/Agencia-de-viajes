@@ -13,7 +13,7 @@ La apuesta: **un equipo de especialistas que trabaja sobre un único plan y demu
 
 ### Fase 0 — Cerrar el MVP (antes de enseñarlo)
 
-- [ ] Aplicar la migración de permisos pendiente en Supabase.
+- [ ] Aplicar `supabase/migrations/0002_privileges.sql` en Supabase (SQL Editor).
 - [ ] Configurar `ANTHROPIC_API_KEY` y **probar los agentes de verdad** con 10-15 viajes variados. Ajustar prompts y límites con lo que salga.
 - [ ] Medir el coste real por viaje generado (tabla `agent_runs`) antes de fijar precios y límites.
 - [ ] Elegir nombre y dominio; completar datos legales; revisión de los textos legales por un profesional.

@@ -31,7 +31,7 @@ Decisiones principales:
 
 ## Base de datos
 
-Esquema en `supabase/migrations/0001_init.sql`.
+Esquema en `supabase/migrations/`: `0001_init.sql` (tablas, RLS, funciones) y `0002_privileges.sql` (permisos por columna y supresión de cuenta).
 
 | Tabla | Para qué |
 | --- | --- |

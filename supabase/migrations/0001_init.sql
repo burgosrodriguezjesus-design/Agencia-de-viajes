@@ -340,21 +340,15 @@ alter table public.chat_messages enable row level security;
 alter table public.agent_runs enable row level security;
 alter table public.affiliate_clicks enable row level security;
 
--- Sin acceso anónimo directo a tablas: lo público pasa por funciones RPC.
-revoke all on all tables in schema public from anon;
-
--- Perfiles: el usuario lee el suyo y solo edita campos no sensibles
--- (plan y stripe_customer_id solo los escribe el servidor con la clave secreta).
+-- Perfiles: el usuario lee el suyo. Los permisos por columna (qué puede
+-- editar) están en 0002_privileges.sql.
 create policy profiles_select_own on public.profiles for select to authenticated
   using (id = (select auth.uid()));
 create policy profiles_update_own on public.profiles for update to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
-revoke insert, update, delete on public.profiles from authenticated;
-grant update (full_name, home_city, currency, marketing_consent) on public.profiles to authenticated;
 
 create policy subscriptions_select_own on public.subscriptions for select to authenticated
   using (user_id = (select auth.uid()));
-revoke insert, update, delete on public.subscriptions from authenticated;
 
 -- Viajes
 create policy trips_select on public.trips for select to authenticated
@@ -365,19 +359,12 @@ create policy trips_update on public.trips for update to authenticated
   using (private.can_edit_trip(id)) with check (private.can_edit_trip(id));
 create policy trips_delete on public.trips for delete to authenticated
   using (owner_id = (select auth.uid()));
-revoke update on public.trips from authenticated;
-grant update (
-  title, destination, destination_country, country_code, dest_lat, dest_lng, dest_iata,
-  origin, origin_iata, start_date, end_date, travelers, rooms, budget_total, currency,
-  trip_type, pace, preferences, status, cover_image_url, cover_image_credit
-) on public.trips to authenticated;
 
 -- Miembros e invitaciones
 create policy trip_members_select on public.trip_members for select to authenticated
   using (private.can_view_trip(trip_id));
 create policy trip_members_delete on public.trip_members for delete to authenticated
   using (private.is_trip_owner(trip_id) or user_id = (select auth.uid()));
-revoke insert, update on public.trip_members from authenticated;
 
 create policy trip_invites_all on public.trip_invites for all to authenticated
   using (private.is_trip_owner(trip_id))
@@ -410,28 +397,22 @@ create policy documents_insert on public.documents for insert to authenticated
   with check (private.can_edit_trip(trip_id) and user_id = (select auth.uid()));
 create policy documents_delete on public.documents for delete to authenticated
   using (private.can_edit_trip(trip_id));
-revoke update on public.documents from authenticated;
 
 create policy chat_messages_select on public.chat_messages for select to authenticated
   using (private.can_view_trip(trip_id));
 create policy chat_messages_insert on public.chat_messages for insert to authenticated
   with check (private.can_edit_trip(trip_id) and user_id = (select auth.uid()));
-revoke update, delete on public.chat_messages from authenticated;
 
--- Uso de agentes: el usuario no puede borrar ni alterar la fecha (límite mensual)
+-- Uso de agentes (permisos por columna en 0002_privileges.sql)
 create policy agent_runs_select on public.agent_runs for select to authenticated
   using (user_id = (select auth.uid()));
 create policy agent_runs_insert on public.agent_runs for insert to authenticated
   with check (user_id = (select auth.uid()) and (trip_id is null or private.can_view_trip(trip_id)));
 create policy agent_runs_update on public.agent_runs for update to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
-revoke insert, update, delete on public.agent_runs from authenticated;
-grant insert (user_id, trip_id, agent, kind) on public.agent_runs to authenticated;
-grant update (status, input_tokens, output_tokens, error, finished_at) on public.agent_runs to authenticated;
 
 create policy affiliate_clicks_insert on public.affiliate_clicks for insert to authenticated
   with check (user_id = (select auth.uid()));
-revoke select, update, delete on public.affiliate_clicks from authenticated;
 
 -- ---------------------------------------------------------------------
 -- RPC públicas
@@ -461,8 +442,6 @@ begin
   on conflict (trip_id, user_id) do update set role = excluded.role;
   return v_invite.trip_id;
 end $$;
-revoke all on function public.accept_trip_invite(text) from public, anon;
-grant execute on function public.accept_trip_invite(text) to authenticated;
 
 -- Vista pública de solo lectura de un viaje compartido por enlace.
 -- No expone documentos, chat ni datos personales del propietario.
@@ -505,22 +484,6 @@ begin
   ) into v_result;
   return v_result;
 end $$;
-revoke all on function public.get_shared_trip(text) from public;
-grant execute on function public.get_shared_trip(text) to anon, authenticated;
-
--- Derecho de supresión (RGPD art. 17): borra la cuenta y, en cascada, todos sus datos
-create or replace function public.delete_my_account()
-returns void language plpgsql security definer set search_path = '' as $$
-declare
-  v_uid uuid := (select auth.uid());
-begin
-  if v_uid is null then
-    raise exception 'NOT_AUTHENTICATED';
-  end if;
-  delete from auth.users where id = v_uid;
-end $$;
-revoke all on function public.delete_my_account() from public, anon;
-grant execute on function public.delete_my_account() to authenticated;
 
 -- ---------------------------------------------------------------------
 -- Almacenamiento privado de documentos: <trip_id>/<archivo>
